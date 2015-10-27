@@ -83,7 +83,7 @@ for retireving stored data. Emphatically, it is agnostic to data formats:
 however the data is stored, Data Broker provides it to the user as data in
 memory (RAM).
 
-`Full Documentation <https://nsls-ii.github.io/dataportal>`_
+`Full Documentation <https://nsls-ii.github.io/broker/basics.html>`_
 
 scikit-xray
 +++++++++++
