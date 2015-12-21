@@ -94,7 +94,7 @@ type ``DataBroker[-N]``.
 .. ipython:: python
 
    from dataportal.broker import DataBroker
-  
+
    header = DataBroker[-1]
 
 What we get is a Header, a dictionary-like (for C programmers, struct-like)
@@ -104,7 +104,7 @@ object with all the information pertaining to a run.
 
    header
 
-We can view its complete contents with ``print`` or, equivalently, 
+We can view its complete contents with ``print`` or, equivalently,
 ``str(header)``.
 
 .. ipython:: python
@@ -174,7 +174,7 @@ the temperature and intesity sensors never happened to take a simultaneous
 measurement. Doing so, we would be implicitly *binning* those measurements
 in time.
 
-Therefore, plotting one dependent variable against another usually requires 
+Therefore, plotting one dependent variable against another usually requires
 binning to effectively "align" the measurements against each other in time.
 This is the problem that DataMuxer is designed to solve. On the simplest level,
 it takes the stream of events and creates the table of data you probably
@@ -264,7 +264,7 @@ indexing from the end of a list.
 .. ipython:: python
 
    header = DataBroker[-1]  # most recent scan
-   header.scan_id 
+   header.scan_id
    header = DataBroker[-2]  # next to last scan
    header.scan_id
    headers = DataBroker[-5:]  # all of the last five scans
@@ -294,3 +294,42 @@ For advanced searches, use ``find_headers``.
 
 Any of these results, whether a single Header or a list of Headers, can be
 passed to ``DataBroker.fetch_events()`` as shown in the previous sections above.
+
+Philosophy
+==========
+
+The DataBroker is the unified user-facing interface to metadatastore,
+filestore, and channel archiver.  The API is built around the notion
+of 'Headers' and 'Events' which are built around the `RunStart`,
+`RunStop`, `EventDersriptor` and `mds.Event` documents.
+
+
+The 'Header' is all of the meta-data associated with an experimental
+'run' (which is very tightly coupled to an ophyd scan) which aggregates
+the `RunStart`, `RunStop` (if available) and all of the event descriptors.
+
+
+Using the header we provide tools that will yield an event stream of
+all of the events associated with that header.  If there is more than
+one EventDescriptor, which will be the case for asynchronous data,
+each event will contain data from exactly one event document
+which has exactly one over-all time and EventDescriptor.
+
+
+Dataprotal will also be able to, from a header and list of PVs, extract
+data from ChannelArchiver.  The CA data can be cast into the same
+data model as scan events, with an EventDescriptor and the time point
+data as events.
+
+
+Although an accurate and flexible model, an event stream is not the
+easiest thing to analysis, data from different streams needs to be
+aligned in some way.  This may be by upsampling, via interpolation, or
+downsapmling, via binning, one or more of the streams.  How to do this
+alignment is highly dependent on the details of the science and can
+not be automatic.
+
+The interface for data alignmennt is the `Muxer` which is
+constructed from one or more Event stream.  Up/down sample rules
+can be specified on a pre-column basis and then the data extracted on
+a given time-base, either based on a column or on time points

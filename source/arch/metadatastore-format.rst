@@ -57,31 +57,270 @@ We use the literal ``<time>`` to indicate a client side date/time and
     Expand for data collection, using event model
 
 
+Events view of the world
+========================
+
+.. highlight:: json
+
+When taking data we measure numbers ::
+
+  2.5
+
+Well, typically more than one number ::
+
+  [2.5, .05]
+
+but then we need to know *what* we measured ::
+
+   {
+    "motor1": 2.5,
+    "photodiode":0.05
+   }
+
+and we tend to want to measure the same things many times in
+sequence so we should keep track of the sequence number ::
+
+  {
+   "seq_num": 0,
+   "data": {"motor1": 2.5,
+            "photodiode":0.05}
+  }
+  {
+   "seq_num": 1,
+   "data": {"motor1": 2.4,
+            "photodiode":0.5}
+  }
+
+and we also want to know *when* we took the data and be able to uniquely identify
+a given event ::
+
+  {
+   "seq_num": 0,
+   "data": {"motor1": 2.5,
+           "photodiode":0.05},
+   "time": 1431698798.9090064,
+   "uid": "82d81f96-2c81-42a4-90e7-9f1c96e5709b"
+  }
+  {
+   "seq_num": 1,
+   "data": {"motor1": 2.4,
+            "photodiode":0.5},
+   "time": 1431698800.8632064
+   "uid": "9912c195-aa5d-4404-b529-823f2a2e30a2"
+  }
+
+However, the data we are measuring is coming from real pieces of hardware which never get
+measured at *exactly* the same time so we also want to store those times ::
+
+
+  {
+   "seq_num": 0,
+    "data": {"motor1": [2.5, 1431698798.9090054],
+            "photodiode": [0.05, 1431698798.9090060]},
+    "time": 1431698798.9090064,
+    "uid": "82d81f96-2c81-42a4-90e7-9f1c96e5709b"
+  }
+  {
+   "seq_num": 1,
+   "data": {"motor1": [2.4, 1431698800.8632061],
+            "photodiode": [0.5, 1431698800.8632062]},
+   "time": 1431698800.8632064
+   "uid": "9912c195-aa5d-4404-b529-823f2a2e30a2"
+  }
+
+For non-scalar data we do not want to store the raw data directly in the events.
+This is both for technical reasons on both the data base side and the collection side
+non-scalar data is stored external to the events and only a reference is stored in
+the documents ::
+
+  {
+   "seq_num": 0,
+    "data": {"cam1": ["c0a687b9-2413-4e18-9bc6-97fe5f049814", 1431698798.9090053],
+             "motor1": [2.5, 1431698798.9090054],
+             "photodiode": [0.05, 1431698798.9090060]},
+    "time": 1431698798.9090064,
+    "uid": "82d81f96-2c81-42a4-90e7-9f1c96e5709b"
+  }
+  {
+   "seq_num": 1,
+   "data": {"cam1": ["4e65245a-88a2-490f-9916-a48c4cf57d68", 1431698800.8632051],
+            "motor1": [2.4, 1431698800.8632061],
+            "photodiode": [ 0.5, 1431698800.8632062]},
+   "time": 1431698800.8632064
+   "uid": "9912c195-aa5d-4404-b529-823f2a2e30a2"
+  }
+
+
+We call these documents "Events" and they capture almost all of the
+scientific information about a measurement.  By bundling all of these
+measurements into a single document the experimenter is communicating that
+this set of measurements are "naturally" associated with each other and are,
+to the experimental time scale that matter, "at the same time".  A stream
+of Events represents a single completely synchronous experiment.
+
+However, Events alone do not tell us:
+
+- where is the external data stored and how do we get it?
+- what hardware was used to take each data
+
+and in general we have no way of knowing ahead of time:
+
+- what the keys in "data" will be
+- what the data type will be
+- if the value is real data or a reference
+- the data shape
+
+For a single data entry the source of the data can be uniquely
+specified with a PV ::
+
+ {
+  "source": "PV:XF23ID{}-RBV"
+ }
+
+the dtype and shape are book keeping::
+
+
+ {
+  "source": "PV:XF23ID{}-RBV",
+  "dtype": "number",
+  "shape": []
+ }
+
+and if the data is stored externally then a an "external" key
+holds::
+
+
+ {
+  "source": "PV:XF23ID{}:CAM-ARR",
+  "dtype": "array",
+  "shape": [2000, 2000],
+  "external": "FILESTORE"
+ }
+
+To fully describe the events we thus assemble a EventDescriptor::
+
+  {
+   "uid": "3fa1f82b-c106-48dd-b612-c038a487348c",
+   "time": 1431708954.9472792,
+   "data_keys": {"cam1": {
+                          "source": "PV:XF23ID{}:CAM-ARR",
+                          "dtype": "array",
+                          "shape": [2000, 2000],
+                          "external": "FILESTORE"
+			 },
+		"motor1": {
+		           "source": "PV:XF23ID{}:motor-RBV",
+			   "dtype": "number",
+			   "shape": []
+			  },
+		"photodiode": {
+		           "source": "PV:XF23ID{}:pd-I",
+			   "dtype": "number",
+			   "shape": []
+			  }
+		  }
+  }
+
+and the go back and add a reference to the EventDescriptor to our Event
+documents::
+
+  {
+   "seq_num": 1,
+   "data": {"cam1": ["4e65245a-88a2-490f-9916-a48c4cf57d68", 1431698800.8632051],
+            "motor1": [2.4, 1431698800.8632061],
+            "photodiode": [ 0.5, 1431698800.8632062]},
+   "time": 1431698800.8632064
+   "uid": "9912c195-aa5d-4404-b529-823f2a2e30a2",
+   "descriptor": "3fa1f82b-c106-48dd-b612-c038a487348c",
+  }
+
+which allows us to: given an Event look up what is in it and given an
+EventDescriptor get all of the Events which are described by it.
+
+However, event with EventDescriptors we are still not capturing
+everything about the experiment which might be relevant.  For example
+we have described the 'what' of the measurement, but not the
+'who', 'how', 'why', or 'where'.  For that we need another layer of documents which capture things
+like
+
+- what research project this is part of?
+- what beamline the data is taken at?
+- what sample is in the beam?
+- how is the beam line configured?
+- who owns this data?
+
+Thus we also have a RunStart Document that looks like::
+
+ {
+  "uid": "c8333990-fc9b-4dd0-b1b1-41efc47a4ef5",
+  "time": 1431710613.1099296,
+  "project": "review docs",
+  "beamline_id": "backyard",
+  "scan_id": 0,
+  "beamline_config": {"ant_hills": 2, "ant_type": "small"},
+  "owner": "tcaswell",
+  "group": "DAMA",
+  "sample": {"name": "aardvark", "color": "brown"}
+}
+
+and then add a reference to the RunStart uid in the EventDescriptor documents ::
+
+
+  {
+   "run_start": "c8333990-fc9b-4dd0-b1b1-41efc47a4ef5",
+   "uid": "3fa1f82b-c106-48dd-b612-c038a487348c",
+   "time": 1431708954.9472792,
+   "data_keys": {"cam1": {
+                          "source": "PV:XF23ID{}:CAM-ARR",
+                          "dtype": "array",
+                          "shape": [2000, 2000],
+                          "external": "FILESTORE"
+                         },
+                "motor1": {
+                           "source": "PV:XF23ID{}:motor-RBV",
+                           "dtype": "number",
+                           "shape": []
+                          },
+                "photodiode": {
+                           "source": "PV:XF23ID{}:pd-I",
+                           "dtype": "number",
+                           "shape": []
+                          }
+                  }
+  }
+
+There can be a many-to-one relationship between EventDescriptors and
+RunStarts.  This is useful when a given 'run' may have more that one
+asynchronous event stream.  For example measuring a scalar values
+(tempreature, voltage, etc) at 5 Hz while taking 10s exposures with an
+area detector.  By de-coupling measurements that can be asynchronous
+each measurement can be made at the 'right' speed.
+
+To go with the RunStart document there is a RunStop document which reports
+the final fate of the run::
+
+ {
+   "time": 1431714441.0788312,
+   "run_start": "c8333990-fc9b-4dd0-b1b1-41efc47a4ef5",
+   "exit_status": "success",
+   "reason": "",
+   "uid": "18001952-638d-4c02-835c-eda8e5dc2e92"
+ }
+
+
+
+
 Documents
 =========
 
 .. xfig:: mds.fig
 
 
-Events view of the world
-========================
-
-Events are the smallest quantum of data stored in the metadatastore. They group
-values which are associated with temporally bundled data. The definition of
-"temporally identical" is determined by the DAQ system. For example, the 32
-channels in a scaler can be considered to be temporally identical because they
-are hardware synchronized. Inclusion of a CCD image (with a reference to the
-file store) can be included if this event is triggered at the same time, either
-by software or hardware.  Each ``event`` contains the data values and a client
-side timestamp of when the even was created. The same logic is applied to
-``trigger events``. These are grouped with temporally identical triggers (again
-determined by the DAQ philosophy).
-
 
 
 Event Descriptor Document
 =========================
-.. highlight:: json
+
 
 Schema
 ++++++
