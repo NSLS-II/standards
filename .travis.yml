@@ -1,0 +1,24 @@
+language: python
+env:
+  global:
+    - python: 3.5
+    - BUILD_DOCS: true
+    - BUILD_DOCS_BRANCH: 'master'
+    - GH_REF: github.com/nsls-ii/nsls-ii.github.io
+    - secure: "Z9sFg0cXkS18bQqSghPGkWTOi9p7UD7wWhj5KRjBDnqwfJBTEewy8s/hCRX7hbZEi4+ViDYKxdTZbjl1dXpBtw/ALAqGAy0V97NeyBZ0yeyWp9I4UjVeHci3yTmSOws6aViIeTv6dU0uN+zxHsTVB5bQPH+CgXsOyB1wR+jKdck="
+
+
+before_install:
+  # clone conda install/build/upload helper scripts and make them executable
+  - git clone https://github.com/NSLS-II/nsls2-ci ~/scripts
+  - chmod +x ~/scripts/*.sh
+
+install:
+  - . ~/scripts/install-miniconda.sh
+
+script:
+  - pushd ~/scripts && HTML_DIR="build/html" DOCS_DIR="$TRAVIS_BUILD_DIR" . do-the-docs.sh && popd
+  - ls $HTML_DIR
+
+after_failure:
+  - env

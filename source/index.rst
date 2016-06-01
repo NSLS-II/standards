@@ -46,7 +46,7 @@ several iterations of re-design.
 Now, approaching the Summer 2016 operating cycle at NSLS-II , the framework
 is stabilizing. New and unforeseen applications are fitting well into the
 framework, validating its assumptions and optimizations. At the same time,
-software bugs are being discovered less often and being fixed more quickly. 
+software bugs are being discovered less often and being fixed more quickly.
 
 Looking forward, software targeted to more specific tasks will need to be
 built.  For example, a user who only does about five different kinds of
@@ -72,7 +72,7 @@ documentation, linked below.
     * `ophyd <http://nsls-ii.github.io/ophyd>`_ -- a collection of Python objects that represent hardware, providing a common high-level interface
 * Data Access Packages
     * High-level Data Access
-        * `databroker <http://nsls-ii.github.io/databroker>`_ -- a simple interface that pulls together data from all sources
+        * `databroker </databroker>`_ -- a simple interface that pulls together data from all sources
     * Low-Level Data Storage and Access
         * metadataclient (preferred), metadatastore (deprecated)
         * filestore
