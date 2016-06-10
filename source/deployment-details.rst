@@ -9,3 +9,4 @@ Deployment Details
    conda
    fresh-installation
    beamline-configuration
+   automated-deployment
