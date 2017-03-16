@@ -41,3 +41,34 @@ and filestore will suffice
 - Prioritize the backends to be implemented, define timelines, and implement.
 
 - Add an authentication layer
+
+
+Technology
+=============
+
+Given there are plans for central storage and data management, the implementation
+of the server layer must be scalable. This means a micro-service oriented
+infrastructure that can eventually be placed behind load balancers is a good
+intuitive choice. A fully RESTful approach is achiveable yet limiting given the
+flexibility provided by the stack. This layer needs some discussion. We could
+definitely adopt a RESTful approach (ugh, dreaded approach word) could be
+adopted rather than handler per document type sort of approach of metadataservice
+and amostra.
+
+Server Side Design
+===================
+
+HeaderHandler
+------------
+
+**get:** Decode jsonified query and return a serialize a list of dicts
+If invalid request, return appropriate http error code.
+
+
+EventSourceHandler
+------------------
+
+**get:** Using the uid of the header, obtains an event generator.
+By paginating on this generator, returns the payload to the client side.
+In the future, this bit will sort out the source of the data fill source
+and redirect to the appropriate handler.
