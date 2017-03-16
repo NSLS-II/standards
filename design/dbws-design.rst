@@ -68,7 +68,9 @@ If invalid request, return appropriate http error code.
 EventSourceHandler
 ------------------
 
-**get:** Using the uid of the header, obtains an event generator.
+**get:** Using the uid of the descriptor(s), obtains an event generator.
 By paginating on this generator, returns the payload to the client side.
 In the future, this bit will sort out the source of the data fill source
-and redirect to the appropriate handler.
+and redirect to the appropriate handler. In this context, handler refers to
+the eventsource provided specific choice of technology given the data structure
+and rate.
