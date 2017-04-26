@@ -16,7 +16,7 @@ outputs h5 file with the same structure of the data in databroker.
 
     from suitcase import hdf5
     last_run = db[-1]      # get header from databroker
-    hdf5.export(last_run, 'myfile.h5', mds=db.mds)
+    hdf5.export(last_run, 'myfile.h5', db=db)
 
 The first argument may be a single Header or a list of Headers. You can also use keyword "fields"
 in the "export" function to define specifically which data sets you want to output.
@@ -28,7 +28,7 @@ in the "export" function to define specifically which data sets you want to outp
     un_wanted_fields = ['A', 'B', 'C']
     fds = hdf5.filter_fields(hdr, un_wanted_fields)
     filename = 'scanID_123.h5'
-    hdf5.export(hdr, filename, mds=db.mds, fields=fds)
+    hdf5.export(hdr, filename, db=db, fields=fds)
 
 Here I assume A, B, C are keywords for some vector data, like images. You can define them as un_wanted_fields.
 If all vector data are blocked, saving data with only scaler data and header information should be very faster.
@@ -55,7 +55,7 @@ solution 1: decorator
                 return doc
         return rebinner
 
-    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter=make_rebinner(3, 'a'))
+    hdf5.export(last_run, 'myfile.h5', db=db, filter=make_rebinner(3, 'a'))
 
 
 
@@ -69,7 +69,7 @@ solution 2: partial function
     def rebinner(n, field, name, doc)
     make_rebinner = partial(rebinner, 3, 'a')
 
-    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter=make_rebinner)
+    hdf5.export(last_run, 'myfile.h5', db=db, filter=make_rebinner)
 
 
 solution 3: use class
@@ -86,7 +86,7 @@ solution 3: use class
         def __call__()self, name, doc):
             ...
 
-    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter=ReBinner(3, 'a'))
+    hdf5.export(last_run, 'myfile.h5', db=db, filter=ReBinner(3, 'a'))
 
 We can use base class from bluesky.
 
@@ -95,6 +95,6 @@ solution 4: based on original export function
 
 .. code-block:: python
 
-    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter, filter_kwargs)
+    hdf5.export(last_run, 'myfile.h5', db=db, filter, filter_kwargs)
 
     # use filter function as filter(name, doc, filter_kwargs)
