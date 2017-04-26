@@ -9,7 +9,7 @@ Suitcase is a simple utility for exporting data from the databroker into a stand
 
 Current Implementation
 ======================
-One of the functions currently used is called "export", which mainly takes inputs including header, filename and metadatastore, and
+One of the functions currently used is called ``export``, which mainly takes inputs including header, filename and metadatastore, and
 outputs h5 file with the same structure of the data in databroker.
 
 .. code-block:: python
@@ -63,10 +63,38 @@ solution 2: partial function
 ----------------------------
 
 .. code-block:: python
+
     from functools import partial
 
     def rebinner(n, field, name, doc)
     make_rebinner = partial(rebinner, 3, 'a')
+
     hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter=make_rebinner)
 
-    
+
+solution 3: use class
+---------------------
+
+.. code-block:: python
+
+    class ReBinner:
+
+        def __init__(self, n, field):
+            self.n = n
+            self.field = field
+
+        def __call__()self, name, doc):
+            ...
+
+    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter=ReBinner(3, 'a'))
+
+We can use base class from bluesky.
+
+solution 4: based on original export function
+---------------------------------------------
+
+.. code-block:: python
+
+    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter, filter_kwargs)
+
+    # use filter function as filter(name, doc, filter_kwargs)
