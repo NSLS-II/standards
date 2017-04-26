@@ -9,11 +9,8 @@ Suitcase is a simple utility for exporting data from the databroker into a stand
 
 Current Implementation
 ======================
-One of the functions currently used is called "export", which mainly takes header, filename and metadatastore as input and
-output h5 file with the same structure of the data in databroker.
-
-Usage Example
--------------
+One of the functions currently used is called "export", which mainly takes inputs including header, filename and metadatastore, and
+outputs h5 file with the same structure of the data in databroker.
 
 .. code-block:: python
 
@@ -36,3 +33,40 @@ in the "export" function to define specifically which data sets you want to outp
 Here I assume A, B, C are keywords for some vector data, like images. You can define them as un_wanted_fields.
 If all vector data are blocked, saving data with only scaler data and header information should be very faster.
 Please also define filename clearly, so you know which data it comes from.
+
+Issue and Proposed Solution
+===========================
+Users want to do binning on some of the datasets, i.e., changing the shape of a given data from (100,100) to (50,50).
+So we need to change both the data from events and the data shape information in the descriptor. Here are some
+of the solutions.
+
+solution 1: decorator
+---------------------
+
+.. code-block:: python
+
+    def make_rebinner(n, field):
+        def rebinner(name, doc):
+            if name =='descriptor':
+                #change information in descriptor
+            elif name == 'event':
+                #rebin data here from event here
+            else:
+                return doc
+        return rebinner
+
+    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter=make_rebinner(3, 'a'))
+
+
+
+solution 2: partial function
+----------------------------
+
+.. code-block:: python
+    from functools import partial
+
+    def rebinner(n, field, name, doc)
+    make_rebinner = partial(rebinner, 3, 'a')
+    hdf5.export(last_run, 'myfile.h5', mds=db.mds, filter=make_rebinner)
+
+    
