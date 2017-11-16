@@ -24,33 +24,33 @@ Example Solution
 ###############################################################################
 # Boiler plate imports and configuration
 
+    import path
+    import os
+    import bluesky as bs
+    import bluesky.plans as bp
+    import bluesky.callbacks as bc
+    import csv
+    from ophyd.sim import motor, det
 
-import path
-import os
-import bluesky as bs
-import bluesky.plans as bp
-import bluesky.callbacks as bc
-import csv
-from bluesky.examples import motor, det
-
-import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt
 
 
-# Do this if running the example interactively;
-# skip it when building the documentation.
-import os
-if 'BUILDING_DOCS' not in os.environ:
-    from bluesky.utils import install_qt_kicker  # for notebooks, qt -> nb
-    install_qt_kicker()
-    plt.ion()
-    det.exposure_time = .1  # simulate detector exposure time
+    # Do this if running the example interactively;
+    # skip it when building the documentation.
+    import os
+    if 'BUILDING_DOCS' not in os.environ:
+        from bluesky.utils import install_qt_kicker  # for notebooks, qt -> nb
+        install_qt_kicker()
+        plt.ion()
+        det.exposure_time = .1  # simulate detector exposure time
 
-RE = bs.RunEngine({})
+    RE = bs.RunEngine({})
+
+
 
 
 ###############################################################################
 # Define a callback class which writes out a CSV file
-
 
 class CSVWriter(bc.CallbackBase):
     def __init__(self, fields, fname_format, fpath):
@@ -86,6 +86,8 @@ class CSVWriter(bc.CallbackBase):
 
     def stop(self, doc):
         self.close()
+
+
 
 ###############################################################################
 # Set up some callbacks

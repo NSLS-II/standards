@@ -18,14 +18,14 @@ Approach
 Example Solutions
 =================
 
-The ``bluesky.examples`` module includes simulated motors and detectors.
+The ``ophyd.sim`` module includes simulated motors and detectors.
 
 """
 # Make a RunEngine instance.
 from bluesky import RunEngine
 RE = RunEngine({})
 
-from bluesky.examples import motor, motor1, motor2, det
+from ophyd.sim import motor, motor1, motor2, det
 from bluesky.plan_tools import print_summary, plot_raster_path
 from bluesky.plans import count, scan, outer_product_scan
 
