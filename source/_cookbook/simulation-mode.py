@@ -38,13 +38,14 @@ from bluesky.plans import count, scan, outer_product_scan
 
 print_summary(count([det]))
 print_summary(scan([det], motor, 1, 3, 3))
-print_summary(outer_product_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2, False))
+print_summary(outer_product_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2,
+                                 False))
 
 ###############################################################################
 # Use ``plot_raster_path`` to visualize a two-dimensional trajectory.
 
-plot_raster_path(outer_product_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2, False),
-                 'motor1', 'motor2')
+plot_raster_path(outer_product_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2,
+                                    False), 'motor1', 'motor2')
 
 ###############################################################################
 # Note that ``print_summary`` cannot be used on plans the require feedback from
@@ -52,7 +53,7 @@ plot_raster_path(outer_product_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2, Fal
 #
 # Rehearse plans
 # --------------
-# 
+#
 # Simply execute the plan as usual --- ``RE(plan)`` --- but define that plan
 # using the simulated motors and detectors from ``bluesky.examples`` instead of
 # the variables that represent real hardware.

@@ -24,29 +24,27 @@ Example Solution
 ###############################################################################
 # Boiler plate imports and configuration
 
-    import path
-    import os
-    import bluesky as bs
-    import bluesky.plans as bp
-    import bluesky.callbacks as bc
-    import csv
-    from ophyd.sim import motor, det
+import path
+import os
+import bluesky as bs
+import bluesky.plans as bp
+import bluesky.callbacks as bc
+import csv
+from ophyd.sim import motor, det
 
-    import matplotlib.pyplot as plt
-
-
-    # Do this if running the example interactively;
-    # skip it when building the documentation.
-    import os
-    if 'BUILDING_DOCS' not in os.environ:
-        from bluesky.utils import install_qt_kicker  # for notebooks, qt -> nb
-        install_qt_kicker()
-        plt.ion()
-        det.exposure_time = .1  # simulate detector exposure time
-
-    RE = bs.RunEngine({})
+import matplotlib.pyplot as plt
 
 
+# Do this if running the example interactively;
+# skip it when building the documentation.
+import os
+if 'BUILDING_DOCS' not in os.environ:
+    from bluesky.utils import install_qt_kicker  # for notebooks, qt -> nb
+    install_qt_kicker()
+    plt.ion()
+    det.exposure_time = .1  # simulate detector exposure time
+
+RE = bs.RunEngine({})
 
 
 ###############################################################################
@@ -88,13 +86,13 @@ class CSVWriter(bc.CallbackBase):
         self.close()
 
 
-
 ###############################################################################
 # Set up some callbacks
 
 
 def create_cbs():
     return [bc.LiveTable([motor, det]), bc.LivePlot('det', 'motor')]
+
 
 fmt = '{user}_{uid:.6s}.csv'
 export_path = '/tmp/export_demo'
