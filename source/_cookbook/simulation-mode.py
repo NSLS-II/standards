@@ -26,29 +26,29 @@ from bluesky import RunEngine
 RE = RunEngine({})
 
 from ophyd.sim import motor, motor1, motor2, det
-from bluesky.plan_tools import print_summary, plot_raster_path
-from bluesky.plans import count, scan, outer_product_scan
+from bluesky.plan_tools import summarize_plan, plot_raster_path
+from bluesky.plans import count, scan, grid_scan
 
 ###############################################################################
 # Inspect plans
 # -------------
 #
-# Use ``print_summary`` which translates the plan into a human-readable list
+# Use ``summarize_plan`` which translates the plan into a human-readable list
 # of steps.
 
-print_summary(count([det]))
-print_summary(scan([det], motor, 1, 3, 3))
-print_summary(outer_product_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2,
+summarize_plan(count([det]))
+summarize_plan(scan([det], motor, 1, 3, 3))
+summarize_plan(grid_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2,
                                  False))
 
 ###############################################################################
 # Use ``plot_raster_path`` to visualize a two-dimensional trajectory.
 
-plot_raster_path(outer_product_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2,
+plot_raster_path(grid_scan([det], motor1, 1, 3, 3, motor2, 1, 2, 2,
                                     False), 'motor1', 'motor2')
 
 ###############################################################################
-# Note that ``print_summary`` cannot be used on plans the require feedback from
+# Note that ``summarize_plan`` cannot be used on plans the require feedback from
 # the hardware, such as adaptively-spaced step scans.
 #
 # Rehearse plans
