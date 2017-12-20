@@ -169,6 +169,38 @@ JupyterHub.
     (This often trips up Python users, because Python tolerates trailing commas
     in lists.)
 
+4. OPTIONAL : Specifying environment variables
+
+   In some cases, you may want to specify some environment variables before the
+   ipython kernel is run. Add them to the "argv" list to specify them.
+   For example, for hdf5 images saved by the EIGER detector, the lz4
+   compression plugin is required. The plugin is located by the hdf5 library
+   through the environment variable:
+
+    .. code-block:: bash
+
+        HDF5_PLUGIN_PATH=/path/to/HDF5Plugin
+
+   This is added by simply adding this line above to the "argv" field:
+
+    .. code-block:: json
+
+        {
+         "argv": [
+         "/home/dallan/conda_envs/myenv/bin/python",
+         "HDF5_PLUGIN_PATH=/path/to/HDF5Plugin",
+         "-m",
+         "ipykernel_launcher",
+         "-f",
+         "{connection_file}"
+         ],
+         "display_name": "Python (myenv)",
+         "language": "python",
+         "host": "xf23id1-srv1"
+        }
+
+
+
 Now, when you create a new notebook in JupyterHub, your new kernel should
 appear in the menu. (You may need to refresh the browser, but you should not
 need to log out of JupyterHub or restart your server.)
