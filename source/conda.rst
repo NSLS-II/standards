@@ -187,8 +187,8 @@ JupyterHub.
 
         {
          "argv": [
-         "/home/dallan/conda_envs/myenv/bin/python",
          "HDF5_PLUGIN_PATH=/path/to/HDF5Plugin",
+         "/home/dallan/conda_envs/myenv/bin/python",
          "-m",
          "ipykernel_launcher",
          "-f",
@@ -198,6 +198,11 @@ JupyterHub.
          "language": "python",
          "host": "xf23id1-srv1"
         }
+
+    .. notes::
+        
+        The environment variable declarations must precede all other elements
+        in the argv list.
 
 
 
