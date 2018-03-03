@@ -22,10 +22,11 @@ sample name in the metadata.
 Example Solution
 ================
 """
-from bluesky.plans import (abs_set, relative_outer_product_scan, wait,
-                           run_decorator, stage_decorator, subs_decorator)
+from bluesky.plan_stubs import abs_set, wait
+from bluesky.plans import (relative_outer_product_scan)
+from bluesky.preprocessors import subs_decorator
 from bluesky.callbacks import LiveTable, LivePlot
-from bluesky.examples import det4, motor1, motor2
+from ophyd.sim import det4, motor1, motor2
 from bluesky import RunEngine
 
 
@@ -38,7 +39,7 @@ def grid_in_grid(samples):
     sample : dict
         mapping each sample's name to its (x, y) position
     """
-    
+
     # In this example we hard-code the hardware and other parameters. For more
     # flexibility, they could instead be parameters to the function.
     detector = det4

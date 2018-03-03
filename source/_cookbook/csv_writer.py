@@ -24,14 +24,13 @@ Example Solution
 ###############################################################################
 # Boiler plate imports and configuration
 
-
 import path
 import os
 import bluesky as bs
 import bluesky.plans as bp
 import bluesky.callbacks as bc
 import csv
-from bluesky.examples import motor, det
+from ophyd.sim import motor, det
 
 import matplotlib.pyplot as plt
 
@@ -50,7 +49,6 @@ RE = bs.RunEngine({})
 
 ###############################################################################
 # Define a callback class which writes out a CSV file
-
 
 class CSVWriter(bc.CallbackBase):
     def __init__(self, fields, fname_format, fpath):
@@ -87,12 +85,14 @@ class CSVWriter(bc.CallbackBase):
     def stop(self, doc):
         self.close()
 
+
 ###############################################################################
 # Set up some callbacks
 
 
 def create_cbs():
     return [bc.LiveTable([motor, det]), bc.LivePlot('det', 'motor')]
+
 
 fmt = '{user}_{uid:.6s}.csv'
 export_path = '/tmp/export_demo'

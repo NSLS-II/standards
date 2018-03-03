@@ -1,4 +1,5 @@
 bluesky  # for gallery example
+ophyd # for the ophyd.sim class for bluesky examples
 doctr
 ipython
 jsonschema

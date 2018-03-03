@@ -12,14 +12,14 @@ sigma, is below some threshold.
 Approach
 ========
 
-Use :func:`bluesky.callbacks.LiveFit` and :func:`bluesky.callbacks.LiveFitPlot` to perform and
-visualize a non-linear least-squared fit.
+Use :func:`bluesky.callbacks.LiveFit` and :func:`bluesky.callbacks.LiveFitPlot`
+to perform and visualize a non-linear least-squared fit.
 
 Normally we would use :func:`plans.scan` to perform the 1D scan. In this case,
 we need something more sophisticated to incorporate adaptive logic that
 continues the scan until the fit attains sufficient confidence in sigma. We
-write our scan logic using the lower-level plans :func:`bluesky.plans.abs_set` and
-:func:`bluesky.plans.trigger_and_read`.
+write our scan logic using the lower-level plans :func:`bluesky.plans.abs_set`
+and :func:`bluesky.plans.trigger_and_read`.
 
 Example Solution
 ================
@@ -27,10 +27,10 @@ Example Solution
 import matplotlib.pyplot as plt
 import numpy as np
 import lmfit
-import bluesky.plans as bp
+import bluesky.plan_stubs as bps
+import bluesky.preprocessors as bpp
 import bluesky.callbacks as bc
-import bluesky.utils as bu
-from bluesky.examples import motor, SynGauss
+from ophyd.sim import motor, SynGauss
 from bluesky import RunEngine
 
 # Do this if running the example interactively;
@@ -75,15 +75,15 @@ def scan_gaussian(detectors, motor, start, stop, num, *, ax=None,
     lp = bc.LivePlot(main_detector, main_motor_field,
                      linestyle='none', marker='o', ax=ax)
 
-    @bp.subs_decorator([lfp, lp])
-    @bp.stage_decorator(list(detectors) + [motor])
-    @bp.run_decorator()
+    @bpp.subs_decorator([lfp, lp])
+    @bpp.stage_decorator(list(detectors) + [motor])
+    @bpp.run_decorator()
     def plan():
         while True:
             for step in np.linspace(start, stop, num):
-                yield from bp.abs_set(motor, step, wait=True)
-                yield from bp.trigger_and_read(list(detectors) + [motor])
-                yield from bp.checkpoint()
+                yield from bps.abs_set(motor, step, wait=True)
+                yield from bps.trigger_and_read(list(detectors) + [motor])
+                yield from bps.checkpoint()
 
             err = errorbar(lf.result, 'sigma')
             if err < err_thresh:
