@@ -118,6 +118,7 @@ The following projects are in use but in a less mature stage of development.
    :maxdepth: 2
 
    architecture-overview
+   roadmap
    cookbook/index
    remote-access
    sandbox
