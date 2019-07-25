@@ -3,6 +3,76 @@
 Installation at a Beamline
 ==========================
 
+Configuration Overview
+----------------------
+
+The section aims to give a clear overall picture of how the pieces fit
+together. More details are provided in later sections.
+
+Hardware Integration
+++++++++++++++++++++
+
+First, that all hardware instruments have an EPICS driver and are accessible on
+the network. As a technical matter, it is possible for ophyd to interface with
+devices via other protocols --- such as a vendor-specific serial protocol or
+even LabView. As matter of *policy* NSLS-II strongly prefers that all devices
+be controlled via EPICS, and exceptions to this policy are vanishingly rare.
+
+For each instrument, identify a corresponding ophyd Device --- a Python class
+for controlling and reading the Device. For example, ophyd provides an
+EpicsMotor class for the EPICS EpicsMotor record. In a Python script, create
+instances of these classes. The important work here is mapping the
+machine-readable addresses (dubbed "Process Variables" or PVs in EPICS) to
+human-readable names. The human-readable names will make it easier to access
+and analyze the resultant data. For example, here we configure two different
+motors and a simple point detector.
+
+.. code-block:: python
+
+   from ophyd import EpicsSignal, EpicsMotor
+
+   from ophyd import setup_ophyd
+   setup_ophyd()  # creates a context in the underlying EPICS client
+
+   point_det = EpicsSignal('PV:...', name='point_det1')
+   x_mtr = EpicsMotor('PV:...', name='x_mtr1')
+   y_mtr = EpicsMotor('PV:...', name='y_mtr1')
+
+where ``'PV:...'`` should be replaced by the actual PV.
+
+Ophyd covers the many common instrument types, but of course it is not
+comprehensive. In practice, Device classes (that is, classes inheriting from
+``ophyd.Device``) are defined in four different places:
+
+1. The `ophyd <https://nsls-ii.github.io/ophyd>`_  library is a home for
+   common Device classes used at multiple facilities.
+2. A facility-specific library, such as `pcds-devices
+   <https://github.com/slaclab/pcds-devices>`_ at SLAC or the forthcoming
+   ``nslsii`` library at NSLS-II is a home for Device classes used within a
+   facility. It may also contain factory functions for building *instances* of
+   some Devices, thereby encoding a standard name and known address. For
+   example, a ``ring_current`` signal is a good fit for this use case.
+3. A beamline-specific library, such as
+   `csxtools <https://nsls-ii-csx.github.io/csxtools/>`_ for NSLS-II's CSX
+   beamline, is a home for highly custom Device classes and factory functions.
+   It might also contain custom *plans*, helper functions, or analysis code.
+4. Most users interact with ophyd and bluesky via an IPython shell. As a
+   convenience, IPython can be configured to execute to execute custom Python
+   scripts when it starts up. These scripts may do arbitrary work (connect to a
+   database or to a hardware instrument) and populate the user's namespace with
+   handy variables, such as ``point_det`` and ``x_mtr``. Therefore, in these
+   "startup scripts", we import Devices from one of the libraries above and
+   instantiate them. The scripts should be kept under version control, but they
+   are not a proper, installable Python package to be imported: they are a
+   directory of scripts to be executed in the user namespace. They are the best
+   and most convenient place for "quick hacks" and experimental development.
+   (Where are they startup scripts? See a later section,
+   :ref:`profile <ipython_profile>`)
+
+In summary, most work begins in beamline's startup scripts. Over time, any code
+that can be generalized for reuse across a facility or within facilities should
+be moved up into shared libraries so that the maintenace burden can be shared.
+
 New Beamline
 ------------
 
@@ -63,16 +133,20 @@ installed in ``/usr/local/bin``, also by puppet.
 * ``bsui`` is a shortcut script that activates a conda environment and starts
   IPython with the 'collection' profile.
 
+.. _ipython_profile:
+
 Create New IPython Profile
 ++++++++++++++++++++++++++
 
 At NSLS-II we use IPython profiles to run startup scripts for user convenience.
 
-Profiles are stored in (or soft-linked) from ``~/.ipython`` in the user profile
-of individual users or shared beamline accounts.
-
-The standard profile is called "collection," and the startup scripts are
-located in ``~/.ipython/profile_collection/startup/``.
+Profiles are stored in (or, if you prefer, soft-linked from) ``~/.ipython`` in
+the home directory of individual users or shared beamline accounts. For data
+collection, we have standardized on the profile name 'collection'. Starting
+IPython with the command ``ipython --profile=collection`` executes the Python
+scripts located in ``~/.ipython/profile_collection/startup/``. The scripts are
+executed in alphabetical order in the user namespace, meaning that variables
+defined the first file are available in subsequent files.
 
 If this beamline does not yet have an IPython profile for data collection
 under version control, create one. Start IPython with this command, and
@@ -87,65 +161,9 @@ then exit.
         The official IPython documentation has more information on
         `IPython profiles <https://ipython.org/ipython-doc/dev/config/intro.html#profiles>`_
 
-The above command created new directores and some files under
+The above command created new directories and some files under
 ``~/.ipython/profile_collection``. We add startup files by writing Python
 scripts in the subdirectory ``startup/`` in this profile directory.
-
-This is a example IPython profile startup file. Replace ``YOUR_HOST`` with the
-server where the mongo daemon is running.
-
-.. code-block:: python
-
-    # Make ophyd listen to pyepics.
-    from ophyd import setup_ophyd
-    setup_ophyd()
-
-    # Connect to metadatastore and filestore.
-    from metadatastore.mds import MDS, MDSRO
-    from filestore.fs import FileStoreRO
-    from databroker import Broker
-    mds_config = {'host': <YOUR HOST>,
-                  'port': 27017,
-                  'database': 'metadatastore-production-v1',
-                  'timezone': 'US/Eastern'}
-    fs_config = {'host': <YOUR HOST>,
-                 'port': 27017,
-                 'database': 'filestore-production-v1',
-    mds = MDS(mds_config)
-    mds_readonly = MDSRO(mds_config)
-    fs_readonly = FileStoreRO(fs_config)
-    db = Broker(mds_readonly, fs_readonly)
-
-    # Subscribe metadatastore to documents.
-    # If this is removed, data is not saved to metadatastore.
-    from bluesky.global_state import gs
-    gs.RE.subscribe('all', db.insert)
-
-    # Import matplotlib and put it in interactive mode.
-    import matplotlib.pyplot as plt
-    plt.ion()
-
-    # Make plots update live while scans run.
-    from bluesky.utils import install_qt_kicker
-    install_qt_kicker()
-
-    # Optional: set any metadata that rarely changes.
-    # RE.md['beamline_id'] = 'YOUR_BEAMLINE_HERE'
-
-    # convenience imports
-    from ophyd.commands import *
-    from bluesky.callbacks import *
-    from bluesky.spec_api import *
-    from bluesky.global_state import gs, abort, stop, resume
-    from time import sleep
-    import numpy as np
-
-    RE = gs.RE  # convenience alias
-
-    # Uncomment the following lines to turn on verbose messages for debugging.
-    # import logging
-    # ophyd.logger.setLevel(logging.DEBUG)
-    # logging.basicConfig(level=logging.DEBUG)
 
 Create a Beamline GitHub Organization
 +++++++++++++++++++++++++++++++++++++
@@ -173,7 +191,6 @@ Create a Beamline GitHub Organization
     git remote add upstream https://github.com/NSLS-II-XXX/profile_collection.git
     git push -u upstream master
 
-
 Configure the Olog
 ++++++++++++++++++
 
@@ -197,7 +214,7 @@ Integration with Bluesky
 
 Bluesky automatically logs basic scan information at the start of a
 scan. (All of this information is strictly a subset of what is
-also stored in metadatastore -- this is just a convenience.)
+also stored in databroker -- this is just a convenience.)
 
 Back in an IPython profile startup file, add::
 
