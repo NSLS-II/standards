@@ -11,6 +11,7 @@ Components
 
 .. toctree::
 
+   components/github
    components/conda
    components/ansible-setup
 
