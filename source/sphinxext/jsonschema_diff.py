@@ -40,7 +40,6 @@ from docutils import statemachine
 from docutils.parsers.rst import Directive
 from sphinx.util.nodes import set_source_info
 import difflib
-import jsonschema
 import jinja2
 
 
@@ -100,7 +99,7 @@ def pprint_json(jsdoc):
 
     """
     return json.dumps(jsdoc, sort_keys=True, indent=4,
-               separators=(',', ': '))
+                      separators=(',', ': '))
 
 
 class _baseSchemaDirective(Directive):
@@ -113,18 +112,26 @@ class _baseSchemaDirective(Directive):
         part = []
         comment = []
 
+        opts = self.options
+
         def add_part():
             content = '\n'.join(part)
             if len(part) == 1:
                 try:
-                    rst_file = self.state_machine.document.attributes['source']
-                    test_path = os.path.join(os.path.dirname(rst_file),
-                                              content)
-                    with open(test_path, 'r') as fin:
-                        content = '\n'.join(fin)
-                except FileNotFoundError:
-                    pass
-            try:
+                    import importlib
+                    mod = importlib.import_module(opts['schema_module'])
+                    json_content = getattr(mod, opts['schema_dict'])[content]
+                except:
+                    try:
+                        rst_file = self.state_machine.document.attributes['source']
+                        test_path = os.path.join(os.path.dirname(rst_file),
+                                                 content)
+                        with open(test_path, 'r') as fin:
+                            content = '\n'.join(fin)
+                        json_content = json.loads(content)
+                    except FileNotFoundError:
+                        pass
+            else:
                 json_content = json.loads(content)
             except ValueError:
                 if should_pass:
@@ -161,6 +168,8 @@ class SchemaDiffDirective(_baseSchemaDirective):
 
     def run(self):
         result = []
+
+        opts = self.options
 
         parts = self.split_content(self.content)
         for part in parts:
@@ -282,6 +291,8 @@ def depart_diff_node_latex(self, node):
 def setup(app):
     app.add_directive('schema_diff', SchemaDiffDirective)
 
+    app.add_config_value('schema_module', 'event_model', True)
+    app.add_config_value('schema_dict', 'schemas', True)
     app.add_node(jsonschema_node,
                  html=(visit_jsonschema_node_html,
                        depart_jsonschema_node_html),
