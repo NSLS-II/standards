@@ -47,7 +47,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'sphinx.ext.extlinks',
-    'sphinxcontrib.napoleon',
     'sphinxext.jsonschema_diff',
     'numpydoc',
     'sphinxext.xfig',
@@ -305,10 +304,12 @@ htmlhelp_basename = '{0}-Docs'.format(repo_name)
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('https://docs.python.org/3.5', None),
-                       'bluesky': ('http://nsls-ii.github.io/bluesky', None),
-                       'databroker': ('http://nsls-ii.github.io/databroker',
+                       'bluesky': ('https://nsls-ii.github.io/bluesky', None),
+                       'databroker': ('https://nsls-ii.github.io/databroker',
                                       None),
-                       'ophyd': ('http://nsls-ii.github.io/ophyd', None)}
+                       'ophyd': ('https://nsls-ii.github.io/ophyd', None),
+                       'skbeam': ('https://scikit-beam.github.io/scikit-beam/',
+                                  None)}
 
 # Enable showing todos
 
